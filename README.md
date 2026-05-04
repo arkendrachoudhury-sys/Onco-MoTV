@@ -59,7 +59,7 @@ npm run dev
 npm run build
 ```
 
-This project is configured for seamless deployment to Vercel or Netlify. For public demonstrations where API keys are unavailable, the system automatically transitions to a localized clinical knowledge base.
+This project is configured for seamless deployment to Vercel. For public demonstrations where API keys are unavailable, the system automatically transitions to a localized clinical knowledge base.
 
 ---
 
