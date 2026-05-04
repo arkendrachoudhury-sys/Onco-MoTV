@@ -24,11 +24,13 @@ The platform integrates multi-omic data sources with real-time visualization to 
 
 ## Documentation and Visuals
 
-### Screenshots
-A collection of system interface captures can be found in the `/assets/screenshots` directory. These include:
-- `global_dashboard.png`: Unified overview of cancer density and regional stats.
-- `molecular_search.png`: Detailed view of the genomic variant explorer.
-- `clinical_trends.png`: Comparative Cost vs. Survival analytics.
+## Screenshots
+
+Create a `screenshots` directory at the project root and add your application previews.
+
+-   **Main Interface:** View of the interactive global mapping and epidemiological data.
+-   **Molecular Explorer:** Interface for searching and analyzing genomic variants.
+-   **Clinical Analytics:** Visualization of regional trends and cost models.
 
 ---
 
@@ -59,7 +61,7 @@ npm run dev
 npm run build
 ```
 
-This project is configured for seamless deployment to Vercel. For public demonstrations where API keys are unavailable, the system automatically transitions to a localized clinical knowledge base.
+This project is configured for seamless deployment to Vercel or Netlify. For public demonstrations where API keys are unavailable, the system automatically transitions to a localized clinical knowledge base.
 
 ---
 
