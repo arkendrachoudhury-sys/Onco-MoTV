@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-serif: "Playfair Display", serif;
+  
+  --color-surface: var(--surface);
+  --color-accent-cyan: #00f2ff;
+  --color-accent-purple: #7000ff;
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+}
+
+:root {
+  --bg: #fdfcfb;
+  --surface: #ffffff;
+  --text-primary: #1a1c1e;
+  --text-secondary: #4a4d50;
+  --border: rgba(0, 0, 0, 0.08);
+  --sidebar: #f8f9fa;
+  --accent-soft: rgba(0, 242, 255, 0.05);
+}
+
+[data-theme='dark'] {
+  --bg: #0b0e14;
+  --surface: #151921;
+  --text-primary: #f0f2f5;
+  --text-secondary: #a0a6b1;
+  --border: rgba(255, 255, 255, 0.06);
+  --sidebar: #0f1218;
+  --accent-soft: rgba(0, 242, 255, 0.03);
+}
+
+/* Explicit light theme support */
+[data-theme='light'] {
+  --bg: #fdfcfb;
+  --surface: #ffffff;
+  --text-primary: #1a1c1e;
+  --text-secondary: #4a4d50;
+  --border: rgba(0, 0, 0, 0.08);
+  --sidebar: #f8f9fa;
+  --accent-soft: rgba(0, 242, 255, 0.05);
+}
+
+@layer base {
+  body {
+    @apply bg-[var(--bg)] text-[var(--text-primary)] antialiased font-sans transition-colors duration-500;
+  }
+}
+
+@layer components {
+  .glow-border {
+    @apply border border-accent-cyan/10;
+  }
+  
+  .glow-text {
+    text-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+  }
+  
+  .panel-header {
+    background: linear-gradient(90deg, var(--accent-soft) 0%, transparent 100%);
+  }
+
+  .status-dot {
+    @apply w-2 h-2 rounded-full;
+  }
+
+  .journal-card {
+    @apply border border-[var(--border)] rounded-3xl shadow-sm transition-all duration-500 hover:shadow-xl hover:scale-[1.01];
+    background-color: var(--surface);
+  }
+
+  .journal-title {
+    @apply font-serif italic text-[var(--text-primary)] leading-tight;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 242, 255, 0.3);
+}
+
+/* Typography Overrides */
+.italic-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
