@@ -1,54 +1,67 @@
-# Onco-MoTV: Oncology Molecular Tracking & Visualization 🧬
+# Onco-MoTV: Oncology Molecular Tracking and Visualization
 
-**Onco-MoTV** is a high-performance oncology molecular tracking and visualization platform. It provides clinical decision support by bridging genomic variants with global epidemiological data, offering real-time insights for researchers and clinicians.
+Onco-MoTV is a high-performance clinical decision support system designed for molecular oncology. It bridges the gap between genomic variant data and global epidemiological trends, providing clinicians and researchers with a unified interface for complex data synthesis and regional analysis.
 
-## ✨ Key Features
+## Overview
 
-- **Global Prevalence Mapping:** Interactive visualization of oncology density across 15+ countries and 7 global regions.
-- **Genomic Entity Explorer:** Explore 3500+ variants with real-time search and AI-enhanced intelligence.
-- **Clinical Analytics:** Detailed metrics on regional survival rates, treatment costs, and screening awareness.
-- **AI-Synthesized Insights:** Instant clinical snapshots for complex gene mutations (Zero-config fallback included for public viewing).
-- **Precision UI:** Dark-mode optimized interface designed for high-density medical data visualization.
+The platform integrates multi-omic data sources with real-time visualization to assist in the identification of actionable mutations and the understanding of cancer prevalence across diverse populations. Designed with a focus on high-density data clarity, Onco-MoTV offers a surgical approach to oncological analytics.
+
+## Core Capabilities
+
+### Global Epidemiology Mapping
+*   **Geospatial Analytics:** Interactive density mapping across 15+ countries and 7 major global regions.
+*   **Regional Metrics:** Country-specific prevalence data, survival rates, and clinical awareness statistics.
+
+### Molecular Variant Explorer
+*   **Genomic Intelligence:** Exploration of over 3,500 validated variants with high-speed indexing.
+*   **AI-Enhanced Synthesis:** Integrated intelligence layer providing rapid clinical summaries for complex gene-variant combinations.
+
+### Clinical Economic Analysis
+*   **Treatment Cost Modeling:** Comparative analysis of regional costs for chemotherapy, radiation, and bone marrow transplants.
+*   **Screening Efficiency:** Visualization of screening awareness vs. survival outcome correlations.
 
 ---
 
-## 📸 Screenshots
+## Documentation and Visuals
 
-> [!TIP]
-> Upload your screenshots to the `/assets` folder and update these links to showcase your dashboard.
-
-| Global Mapping Interface | Molecular Variant Explorer |
-| :---: | :---: |
-| ![Mapping](https://via.placeholder.com/600x400?text=Global+Mapping+Interface) | ![Variants](https://via.placeholder.com/600x400?text=Molecular+Variant+Explorer) |
+### Screenshots
+A collection of system interface captures can be found in the `/assets/screenshots` directory. These include:
+- `global_dashboard.png`: Unified overview of cancer density and regional stats.
+- `molecular_search.png`: Detailed view of the genomic variant explorer.
+- `clinical_trends.png`: Comparative Cost vs. Survival analytics.
 
 ---
 
-## 🚀 Quick Start
+## Technical Stack
 
-### Build & Run
+*   **Runtime:** React 18, Vite
+*   **Interface:** Tailwind CSS (Optimized for low-light clinical environments)
+*   **Animation:** Framer Motion (State-aware interaction design)
+*   **Data Visualization:** D3.js, Recharts
+*   **Intelligence:** Google Gemini API (with deterministic local fallback for public nodes)
+
+---
+
+## Installation and Deployment
+
+### Development Environment
 ```bash
-# Install dependencies
+# Clone the repository and install dependencies
 npm install
 
-# Start development server
+# Launch the development server
 npm run dev
+```
 
-# Build for production (Vercel/Netlify ready)
+### Production Build
+```bash
+# Generate optimized production assets
 npm run build
 ```
 
-## 🛠 Technical Architecture
-
-- **React 18 & Vite** - Ultra-fast frontend state management and hot-reloading.
-- **Tailwind CSS** - Utility-first styling for a surgical dark-mode aesthetic.
-- **Framer Motion** - Fluid interaction design and state transitions.
-- **Recharts & D3** - Scalable vector graphics for clinical data trends.
-- **Gemini AI SDK** - Optional AI analysis layer with secure public fallback.
-
-## 🌐 Public Viewing Mode
-This application is configured to run without API keys for public demonstrations. If a `GEMINI_API_KEY` is not provided, the system automatically uses its local clinical knowledge base to provide consistent results for genomic exploration.
+This project is configured for seamless deployment to Vercel or Netlify. For public demonstrations where API keys are unavailable, the system automatically transitions to a localized clinical knowledge base.
 
 ---
 
-## 📄 License
-This project is licensed under the Apache-2.0 License.
+## License
+Distributed under the Apache-2.0 License.

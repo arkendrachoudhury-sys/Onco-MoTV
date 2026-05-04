@@ -76,7 +76,8 @@ const CHART_COLORS = ['#00f2ff', '#7000ff', '#22c55e', '#a855f7', '#3b82f6'];
 export default function App() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'global-map' | 'variants'>('global-map');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 1024);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<string>('India');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [aiSearching, setAiSearching] = useState(false);
@@ -163,12 +164,28 @@ export default function App() {
   const activeCountryData = COUNTRY_SPECIFIC_DATA.find(c => c.country === selectedCountry) || COUNTRY_SPECIFIC_DATA[0];
 
   return (
-    <div className="flex h-screen overflow-hidden font-sans transition-colors duration-300" style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}>
+    <div className="flex h-screen overflow-hidden font-sans transition-colors duration-300 relative" style={{ backgroundColor: 'var(--bg)', color: 'var(--text-primary)' }}>
+      {/* Mobile Menu Backdrop */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
       {/* Sidebar */}
       <motion.aside 
         initial={false}
-        animate={{ width: isSidebarOpen ? 280 : 80 }}
-        className="flex flex-col border-r border-[var(--border)] h-full relative"
+        animate={{ 
+          width: isSidebarOpen ? 280 : 80,
+          x: isMobileMenuOpen ? 0 : (window.innerWidth < 1024 ? -280 : 0)
+        }}
+        className="fixed lg:relative flex flex-col border-r border-[var(--border)] h-full z-[70] transition-transform duration-300"
         style={{ backgroundColor: 'var(--sidebar)' }}
       >
         <div className="p-6 flex items-center gap-4 border-b border-white/10 overflow-hidden whitespace-nowrap">
@@ -223,27 +240,33 @@ export default function App() {
 
         <button 
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="absolute -right-4 top-20 bg-[#00f2ff] text-black rounded-full p-1 shadow-[0_0_15px_rgba(0,242,255,0.6)] z-50 transition-transform hover:scale-110 active:scale-95"
+          className="hidden lg:flex absolute -right-4 top-20 bg-[#00f2ff] text-black rounded-full p-1 shadow-[0_0_15px_rgba(0,242,255,0.6)] z-50 transition-transform hover:scale-110 active:scale-95"
         >
           {isSidebarOpen ? <X size={14} /> : <Menu size={14} />}
         </button>
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden transition-colors duration-500" style={{ backgroundColor: 'var(--bg)' }}>
+      <main className="flex-1 flex flex-col h-full overflow-hidden transition-colors duration-500 w-full" style={{ backgroundColor: 'var(--bg)' }}>
         {/* Header */}
-        <header className="h-14 border-b border-[var(--border)] px-8 flex items-center justify-between" style={{ backgroundColor: 'var(--sidebar)' }}>
-          <div className="flex items-center gap-6">
-            <h1 className="text-sm font-bold tracking-widest uppercase glow-text">Onco-MoTV Lab</h1>
+        <header className="h-14 border-b border-[var(--border)] px-4 lg:px-8 flex items-center justify-between shrink-0" style={{ backgroundColor: 'var(--sidebar)' }}>
+          <div className="flex items-center gap-4 lg:gap-6 w-full lg:w-auto">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 hover:bg-white/5 rounded-lg border border-[var(--border)]"
+            >
+              <Menu size={18} />
+            </button>
+            <h1 className="text-xs lg:text-sm font-bold tracking-widest uppercase glow-text whitespace-nowrap hidden sm:block">Onco-MoTV Lab</h1>
             
-            <form onSubmit={handleGeneSearch} className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 group-focus-within:text-cyan-400 group-focus-within:opacity-100 transition-all" size={14} />
+            <form onSubmit={handleGeneSearch} className="relative group flex-1 sm:flex-initial">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 group-focus-within:text-cyan-400 group-focus-within:opacity-100 transition-all" size={12} />
               <input 
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search 3500+ Genomic Entities..."
-                className="bg-black/10 dark:bg-white/5 border border-[var(--border)] rounded-full py-1.5 pl-10 pr-4 text-[10px] font-mono w-64 focus:w-80 focus:border-cyan-500/50 outline-none transition-all"
+                placeholder="Genomic Entities..."
+                className="bg-black/10 dark:bg-white/5 border border-[var(--border)] rounded-full py-1.5 pl-9 lg:pl-10 pr-4 text-[9px] lg:text-[10px] font-mono w-full sm:w-48 lg:focus:w-80 focus:border-cyan-500/50 outline-none transition-all"
               />
               {aiSearching && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -252,27 +275,27 @@ export default function App() {
               )}
             </form>
           </div>
-          <div className="flex items-center gap-8 text-[10px] font-mono uppercase tracking-widest">
+          <div className="flex items-center gap-4 lg:gap-8 text-[9px] lg:text-[10px] font-mono uppercase tracking-widest ml-4">
             <button 
               onClick={toggleTheme}
-              className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-[var(--border)] flex items-center justify-center group"
+              className="p-1.5 lg:p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-[var(--border)] flex items-center justify-center group"
             >
               <AnimatePresence mode="wait">
                 {theme === 'dark' ? (
                   <motion.div key="sun" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                    <Sun size={14} className="text-amber-400 group-hover:scale-110 transition-transform" />
+                    <Sun size={12} className="text-amber-400 group-hover:scale-110 transition-transform" />
                   </motion.div>
                 ) : (
                   <motion.div key="moon" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                    <Moon size={14} className="text-indigo-600 group-hover:scale-110 transition-transform" />
+                    <Moon size={12} className="text-indigo-600 group-hover:scale-110 transition-transform" />
                   </motion.div>
                 )}
               </AnimatePresence>
             </button>
-            <div className="flex items-center gap-2">
-              <span className="opacity-40">Status:</span>
+            <div className="hidden md:flex items-center gap-2">
+              <span className="opacity-40 whitespace-nowrap">Status:</span>
               <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e] animate-pulse" />
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e] animate-pulse" />
                 <span className="text-green-400">Synced</span>
               </div>
             </div>
@@ -280,7 +303,7 @@ export default function App() {
         </header>
 
         {/* View Areas */}
-        <div className="flex-1 overflow-y-auto p-8 relative">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8 relative custom-scrollbar pb-32">
           <AnimatePresence mode="wait">
             {activeTab === 'global-map' && (
               <motion.div 
@@ -291,20 +314,20 @@ export default function App() {
                 className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-full"
               >
                 {/* Left Panel: Global Region Overview */}
-                <div className="lg:col-span-8 space-y-6">
+                <div className="lg:col-span-8 space-y-4 lg:space-y-6">
                   <motion.div 
                     whileHover={{ scale: 1.005 }}
-                    className="journal-card p-10 relative overflow-hidden h-fit sm:h-[500px]"
+                    className="journal-card p-6 lg:p-10 relative overflow-hidden h-fit sm:h-[400px] lg:h-[500px]"
                   >
-                    <div className="absolute top-8 left-8 z-20">
-                      <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-400 mb-2">Interactive Global Mapping</h3>
-                      <p className="text-2xl sm:text-4xl journal-title">Oncology Density & Distribution</p>
-                      <div className="flex items-center gap-3 mt-4">
+                    <div className="absolute top-6 left-6 lg:top-8 lg:left-8 z-20">
+                      <h3 className="text-[10px] lg:text-xs font-bold uppercase tracking-[0.3em] text-cyan-600 dark:text-cyan-400 mb-2">Interactive Global Mapping</h3>
+                      <p className="text-xl sm:text-2xl lg:text-4xl journal-title">Oncology Density & Distribution</p>
+                      <div className="flex items-center gap-2 lg:gap-3 mt-4">
                         <div className="flex items-center gap-1.5 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                           <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                           <span className="text-[9px] font-mono font-bold text-green-600 dark:text-green-400">REMOTE DATA SYNCED</span>
+                           <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full bg-green-500 animate-pulse" />
+                           <span className="text-[8px] lg:text-[9px] font-mono font-bold text-green-600 dark:text-green-400">REMOTE DATA SYNCED</span>
                         </div>
-                        <p className="text-[10px] font-mono opacity-40 uppercase">LIVE BUFFER: 0x{lastUpdateTime.getTime().toString(16).slice(-4).toUpperCase()}</p>
+                        <p className="text-[8px] lg:text-[10px] font-mono opacity-40 uppercase truncate max-w-[100px] sm:max-w-none">LIVE BUFFER: 0x{lastUpdateTime.getTime().toString(16).slice(-4).toUpperCase()}</p>
                       </div>
                     </div>
 
@@ -313,11 +336,11 @@ export default function App() {
                         animate={{ rotate: 360 }}
                         transition={{ duration: 100, repeat: Infinity, ease: "linear" }}
                       >
-                        <Globe size={600} strokeWidth={0.1} className="text-cyan-500" />
+                        <Globe size={window.innerWidth < 640 ? 300 : 600} strokeWidth={0.1} className="text-cyan-500" />
                       </motion.div>
                     </div>
 
-                    <div className="h-[260px] mt-24 relative z-20">
+                    <div className="h-[180px] sm:h-[220px] lg:h-[260px] mt-24 sm:mt-24 relative z-20">
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart 
                           data={GLOBAL_CANCER_DATA}
@@ -534,25 +557,25 @@ export default function App() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="space-y-12"
+                className="space-y-8 lg:space-y-12"
               >
                 {/* Z-Scheme Layout */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
                   {/* Top Left: Summary */}
-                  <div className="md:col-span-8 space-y-6">
-                    <h2 className="font-serif italic text-3xl text-cyan-500 glow-text">Epidemiological Benchmarks</h2>
-                    <p className="text-sm opacity-60">Comparative oncology trends 2024 (IARC/GCO).</p>
-                    <div className="h-[400px] w-full border border-[var(--border)] rounded-2xl p-6 shadow-xl hover:shadow-cyan-500/5 transition-shadow" style={{ backgroundColor: 'var(--surface)' }}>
+                  <div className="lg:col-span-8 space-y-4 lg:space-y-6">
+                    <h2 className="font-serif italic text-2xl lg:text-3xl text-cyan-500 glow-text">Epidemiological Benchmarks</h2>
+                    <p className="text-[10px] lg:text-sm opacity-60">Comparative oncology trends 2024 (IARC/GCO).</p>
+                    <div className="h-[300px] lg:h-[400px] w-full border border-[var(--border)] rounded-2xl p-4 lg:p-6 shadow-xl hover:shadow-cyan-500/5 transition-shadow" style={{ backgroundColor: 'var(--surface)' }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={EPIDEMIOLOGY_DATA}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                          <XAxis dataKey="type" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-secondary)', fontFamily: 'monospace' }} />
-                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-secondary)', fontFamily: 'monospace' }} />
+                          <XAxis dataKey="type" axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--text-secondary)', fontFamily: 'monospace' }} />
+                          <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 9, fill: 'var(--text-secondary)', fontFamily: 'monospace' }} />
                           <Tooltip 
-                            contentStyle={{ backgroundColor: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '12px', fontFamily: 'monospace' }}
+                            contentStyle={{ backgroundColor: 'var(--surface)', borderRadius: '12px', border: '1px solid var(--border)', fontSize: '10px', fontFamily: 'monospace' }}
                             itemStyle={{ color: '#00f2ff' }}
                           />
-                          <Legend wrapperStyle={{ fontSize: '10px', textTransform: 'uppercase', marginTop: '20px', letterSpacing: '0.1em' }} />
+                          <Legend wrapperStyle={{ fontSize: '9px', textTransform: 'uppercase', marginTop: '10px', lg: '20px', letterSpacing: '0.1em' }} />
                           <Bar dataKey="incidence" fill="#00f2ff" name="Incidence" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="mortality" fill="#7000ff" name="Mortality" radius={[4, 4, 0, 0]} />
                         </BarChart>
@@ -561,13 +584,13 @@ export default function App() {
                   </div>
 
                   {/* Top Right: Status Detail */}
-                  <div className="md:col-span-4 space-y-6 flex flex-col justify-end">
-                    <div className="p-8 border border-[var(--border)] rounded-2xl shadow-xl space-y-4 hover:border-purple-500/30 transition-colors" style={{ backgroundColor: 'var(--surface)' }}>
-                       <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500 mb-2">
-                           <Target size={24} />
+                  <div className="lg:col-span-4 space-y-4 lg:space-y-6 flex flex-col justify-end">
+                    <div className="p-6 lg:p-8 border border-[var(--border)] rounded-2xl shadow-xl space-y-4 hover:border-purple-500/30 transition-colors" style={{ backgroundColor: 'var(--surface)' }}>
+                       <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-500 mb-2">
+                           <Target size={20} lg:size={24} />
                        </div>
-                       <h3 className="text-xl font-serif italic text-purple-500">Node Sensitivity</h3>
-                       <p className="text-sm opacity-60 leading-relaxed">
+                       <h3 className="text-lg lg:text-xl font-serif italic text-purple-500">Node Sensitivity</h3>
+                       <p className="text-[11px] lg:text-sm opacity-60 leading-relaxed">
                          Current diagnostic confidence: <span className="text-purple-500 font-mono">99.98%</span>. 
                          Regional distribution aligns with BCGA cohort 14.
                        </p>
@@ -575,9 +598,9 @@ export default function App() {
                   </div>
 
                   {/* Bottom Left: Regional Detail */}
-                  <div className="md:col-span-4 space-y-6">
-                    <h2 className="font-serif italic text-3xl text-purple-500">Regional Distribution</h2>
-                    <div className="h-[300px] w-full flex flex-col items-center justify-center border border-[var(--border)] rounded-2xl p-4 shadow-xl hover:shadow-purple-500/5 transition-all" style={{ backgroundColor: 'var(--surface)' }}>
+                  <div className="lg:col-span-4 space-y-4 lg:space-y-6">
+                    <h2 className="font-serif italic text-2xl lg:text-3xl text-purple-500">Regional Distribution</h2>
+                    <div className="h-[250px] lg:h-[300px] w-full flex flex-col items-center justify-center border border-[var(--border)] rounded-2xl p-4 shadow-xl hover:shadow-purple-500/5 transition-all" style={{ backgroundColor: 'var(--surface)' }}>
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Pie
@@ -586,8 +609,8 @@ export default function App() {
                             nameKey="type"
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
+                            innerRadius={50}
+                            outerRadius={70}
                             paddingAngle={5}
                             stroke="none"
                           >
@@ -602,18 +625,18 @@ export default function App() {
                   </div>
 
                   {/* Bottom Right: Analytics Layer */}
-                  <div className="md:col-span-8 flex flex-col justify-center">
-                    <div className="p-8 bg-gradient-to-br from-cyan-500/10 to-purple-600/10 border border-cyan-500/20 rounded-2xl space-y-4 relative overflow-hidden group">
+                  <div className="lg:col-span-8 flex flex-col justify-center">
+                    <div className="p-6 lg:p-8 bg-gradient-to-br from-cyan-500/10 to-purple-600/10 border border-cyan-500/20 rounded-2xl space-y-3 lg:space-y-4 relative overflow-hidden group">
                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-100 transition-opacity">
-                         <PieChartIcon size={64} className="text-cyan-500" />
+                         <PieChartIcon size={48} lg:size={64} className="text-cyan-500" />
                        </div>
-                       <h4 className="text-xs font-bold uppercase tracking-widest text-cyan-500">Statistical Node Synergy</h4>
-                       <p className="text-lg font-serif italic text-justify leading-relaxed transition-colors">
+                       <h4 className="text-[9px] lg:text-xs font-bold uppercase tracking-widest text-cyan-500">Statistical Node Synergy</h4>
+                       <p className="text-sm lg:text-lg font-serif italic text-justify leading-relaxed transition-colors">
                          "Cross-regional variant enrichment detected in localized cohorts. Pathological engine indicates a significant correlation between AKT1 frequency and regional demographics."
                        </p>
                        <div className="flex gap-4 pt-4">
-                          <div className="px-3 py-1 bg-white/5 rounded text-[10px] font-mono border border-white/10 uppercase">BCGA_REF: 4A21</div>
-                          <div className="px-3 py-1 bg-white/5 rounded text-[10px] font-mono border border-white/10 uppercase">SIG_VALUE: P&lt;0.001</div>
+                          <div className="px-2 py-1 lg:px-3 lg:py-1 bg-white/5 rounded text-[8px] lg:text-[10px] font-mono border border-white/10 uppercase">BCGA_REF: 4A21</div>
+                          <div className="px-2 py-1 lg:px-3 lg:py-1 bg-white/5 rounded text-[8px] lg:text-[10px] font-mono border border-white/10 uppercase">SIG_VALUE: P&lt;0.001</div>
                        </div>
                     </div>
                   </div>
@@ -696,59 +719,63 @@ export default function App() {
                 )}
 
                 <div className="border border-[var(--border)] rounded-2xl overflow-hidden shadow-xl" style={{ backgroundColor: 'var(--surface)' }}>
-                  <div className="grid grid-cols-6 p-6 border-b border-[var(--border)] bg-black/5 dark:bg-white/5 opacity-50 text-[10px] font-mono uppercase tracking-[0.2em] font-bold">
-                    <span>Gene Entity</span>
-                    <span>Mutation Code</span>
-                    <span>Regional Freq.</span>
-                    <span>Global Freq.</span>
-                    <span>Significance</span>
-                    <span>Source Origin</span>
-                  </div>
-                  <div className="max-h-[600px] overflow-y-auto overflow-x-hidden">
-                    {filteredVariants.map((v, i) => (
-                      <motion.div 
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        whileHover={{ 
-                          scale: 1.002, 
-                          backgroundColor: 'var(--accent-soft)',
-                          x: 4,
-                          transition: { type: "spring", stiffness: 400, damping: 20 }
-                        }}
-                        transition={{ delay: i * 0.05 }}
-                        className="grid grid-cols-6 p-6 border-b border-[var(--border)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer"
-                      >
-                        <span className="font-bold text-cyan-600 dark:text-cyan-400 group-hover:scale-110 origin-left transition-transform inline-block w-fit">{v.gene}</span>
-                        <span className="font-mono text-sm opacity-60">{v.mutation}</span>
-                        <span className="font-mono text-sm opacity-80">{(v.frequencyIndia * 100).toFixed(1)}%</span>
-                        <span className="font-mono text-sm opacity-30 group-hover:opacity-50 transition-opacity">{(v.frequencyGlobal * 100).toFixed(1)}%</span>
-                        <span className="flex items-center gap-2">
-                          <div 
-                            className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" 
-                            style={{ color: v.clinicalSignificance === 'Pathogenic' ? COLORS.risk : COLORS.safe, backgroundColor: 'currentColor' }} 
-                          />
-                          <span className="text-[10px] uppercase font-bold tracking-tighter" style={{ color: v.clinicalSignificance === 'Pathogenic' ? COLORS.risk : COLORS.safe }}>{v.clinicalSignificance}</span>
-                        </span>
-                        <span className="text-[10px] font-mono italic opacity-20 group-hover:opacity-40 transition-opacity">[{v.source}]</span>
-                      </motion.div>
-                    ))}
+                  <div className="overflow-x-auto custom-scrollbar">
+                    <div className="min-w-[800px]">
+                      <div className="grid grid-cols-6 p-4 lg:p-6 border-b border-[var(--border)] bg-black/5 dark:bg-white/5 opacity-50 text-[9px] lg:text-[10px] font-mono uppercase tracking-[0.2em] font-bold">
+                        <span>Gene Entity</span>
+                        <span>Mutation Code</span>
+                        <span>Regional Freq.</span>
+                        <span>Global Freq.</span>
+                        <span>Significance</span>
+                        <span>Source Origin</span>
+                      </div>
+                      <div className="max-h-[600px] overflow-y-auto overflow-x-hidden">
+                        {filteredVariants.map((v, i) => (
+                          <motion.div 
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            whileHover={{ 
+                              scale: 1.002, 
+                              backgroundColor: 'var(--accent-soft)',
+                              x: 4,
+                              transition: { type: "spring", stiffness: 400, damping: 20 }
+                            }}
+                            transition={{ delay: i * 0.05 }}
+                            className="grid grid-cols-6 p-4 lg:p-6 border-b border-[var(--border)] hover:bg-black/5 dark:hover:bg-white/5 transition-colors group cursor-pointer"
+                          >
+                            <span className="font-bold text-cyan-600 dark:text-cyan-400 group-hover:scale-110 origin-left transition-transform inline-block w-fit text-xs lg:text-sm">{v.gene}</span>
+                            <span className="font-mono text-[10px] lg:text-sm opacity-60 truncate pr-2">{v.mutation}</span>
+                            <span className="font-mono text-xs lg:text-sm opacity-80">{(v.frequencyIndia * 100).toFixed(1)}%</span>
+                            <span className="font-mono text-xs lg:text-sm opacity-30 group-hover:opacity-50 transition-opacity">{(v.frequencyGlobal * 100).toFixed(1)}%</span>
+                            <span className="flex items-center gap-2">
+                              <div 
+                                className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" 
+                                style={{ color: v.clinicalSignificance === 'Pathogenic' ? COLORS.risk : COLORS.safe, backgroundColor: 'currentColor' }} 
+                              />
+                              <span className="text-[9px] lg:text-[10px] uppercase font-bold tracking-tighter" style={{ color: v.clinicalSignificance === 'Pathogenic' ? COLORS.risk : COLORS.safe }}>{v.clinicalSignificance}</span>
+                            </span>
+                            <span className="text-[9px] lg:text-[10px] font-mono italic opacity-20 group-hover:opacity-40 transition-opacity truncate pr-2">[{v.source}]</span>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div className="mt-8 flex gap-6">
-                  <div className="flex-1 p-6 bg-black/40 border border-[#7000ff30] rounded-xl relative overflow-hidden">
+                <div className="mt-8 flex flex-col lg:flex-row gap-6">
+                  <div className="flex-1 p-5 lg:p-6 bg-black/40 border border-[#7000ff30] rounded-xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#7000ff08] rounded-full blur-3xl -mr-10 -mt-10"></div>
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-purple-400 mb-4 flex items-center gap-2"><Database size={14} /> HGNC Mapping Layer</h3>
-                    <p className="text-sm text-white/60 leading-relaxed font-serif italic text-justify bg-white/5 p-4 border border-white/5 rounded">
-                      "Cross-regional alias detection active. All p53 variants re-routed to TP53 standard. 0.00001% error mitigation targets confirmed for current session."
+                    <h3 className="text-[10px] lg:text-xs font-bold uppercase tracking-widest text-purple-400 mb-4 flex items-center gap-2"><Database size={14} /> HGNC Mapping Layer</h3>
+                    <p className="text-xs lg:text-sm text-white/60 leading-relaxed font-serif italic text-justify bg-white/5 p-4 border border-white/5 rounded">
+                      "Cross-regional alias detection active. All p53 variants re-routed to TP53 standard. Mitigation targets confirmed."
                     </p>
                   </div>
-                  <div className="w-80 p-6 bg-black/40 border border-white/10 rounded-xl flex flex-col justify-center items-center text-center">
-                    <ShieldCheck size={24} className="text-cyan-400 mb-4" />
-                    <p className="text-[10px] font-mono uppercase tracking-[0.3em] mb-2 text-white/30">Data Integrity</p>
-                    <p className="text-xs font-bold tracking-widest uppercase">Validated Benchmarks</p>
-                    <p className="text-[9px] mt-4 font-mono text-cyan-500 underline">MD5: A83B1...E4F9</p>
+                  <div className="w-full lg:w-80 p-5 lg:p-6 bg-black/40 border border-white/10 rounded-xl flex flex-col justify-center items-center text-center">
+                    <ShieldCheck size={20} className="text-cyan-400 mb-3" />
+                    <p className="text-[9px] font-mono uppercase tracking-[0.3em] mb-1 text-white/30">Data Integrity</p>
+                    <p className="text-[10px] lg:text-xs font-bold tracking-widest uppercase">Validated Benchmarks</p>
+                    <p className="text-[8px] lg:text-[9px] mt-3 lg:mt-4 font-mono text-cyan-500 underline">MD5: A83B1...E4F9</p>
                   </div>
                 </div>
               </motion.div>
@@ -757,18 +784,18 @@ export default function App() {
         </div>
       </main>
 
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-6 px-8 py-3 dark:bg-black/80 bg-white/80 backdrop-blur-md border border-[var(--border)] rounded-full text-[9px] font-mono uppercase tracking-[0.2em] shadow-2xl z-50 transition-all hover:scale-105">
+      <div className="fixed bottom-4 lg:bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-4 lg:gap-6 px-4 lg:px-8 py-2.5 lg:py-3 dark:bg-black/90 bg-white/90 backdrop-blur-md border border-[var(--border)] rounded-full text-[8px] lg:text-[9px] font-mono uppercase tracking-[0.2em] shadow-2xl z-50 transition-all hover:scale-105 whitespace-nowrap overflow-x-auto max-w-[95vw] no-scrollbar">
           <div className="flex items-center gap-2">
             <span className="opacity-40">IARC:</span>
             <span className="text-green-500 font-bold">ACTIVE</span>
           </div>
-          <div className="w-1 h-1 bg-[var(--border)] rounded-full" />
+          <div className="w-1 h-1 bg-[var(--border)] rounded-full opacity-30" />
           <div className="flex items-center gap-2">
             <span className="opacity-40">BCGA:</span>
             <span className="text-green-500 font-bold">READY</span>
           </div>
-          <div className="w-1 h-1 bg-[var(--border)] rounded-full" />
-          <div className="flex items-center gap-2 text-cyan-500">
+          <div className="hidden sm:block w-1 h-1 bg-[var(--border)] rounded-full opacity-30" />
+          <div className="hidden sm:flex items-center gap-2 text-cyan-500">
              <Info size={12} />
              <span className="font-bold">ANALYTICS SYNCED</span>
           </div>
