@@ -1,20 +1,54 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Onco-MoTV: Oncology Molecular Tracking & Visualization 🧬
 
-# Run and deploy your AI Studio app
+**Onco-MoTV** is a high-performance oncology molecular tracking and visualization platform. It provides clinical decision support by bridging genomic variants with global epidemiological data, offering real-time insights for researchers and clinicians.
 
-This contains everything you need to run your app locally.
+## ✨ Key Features
 
-View your app in AI Studio: https://ai.studio/apps/e8c5b15e-5900-4101-b315-179ca2af0b46
+- **Global Prevalence Mapping:** Interactive visualization of oncology density across 15+ countries and 7 global regions.
+- **Genomic Entity Explorer:** Explore 3500+ variants with real-time search and AI-enhanced intelligence.
+- **Clinical Analytics:** Detailed metrics on regional survival rates, treatment costs, and screening awareness.
+- **AI-Synthesized Insights:** Instant clinical snapshots for complex gene mutations (Zero-config fallback included for public viewing).
+- **Precision UI:** Dark-mode optimized interface designed for high-density medical data visualization.
 
-## Run Locally
+---
 
-**Prerequisites:**  Node.js
+## 📸 Screenshots
 
+> [!TIP]
+> Upload your screenshots to the `/assets` folder and update these links to showcase your dashboard.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+| Global Mapping Interface | Molecular Variant Explorer |
+| :---: | :---: |
+| ![Mapping](https://via.placeholder.com/600x400?text=Global+Mapping+Interface) | ![Variants](https://via.placeholder.com/600x400?text=Molecular+Variant+Explorer) |
+
+---
+
+## 🚀 Quick Start
+
+### Build & Run
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production (Vercel/Netlify ready)
+npm run build
+```
+
+## 🛠 Technical Architecture
+
+- **React 18 & Vite** - Ultra-fast frontend state management and hot-reloading.
+- **Tailwind CSS** - Utility-first styling for a surgical dark-mode aesthetic.
+- **Framer Motion** - Fluid interaction design and state transitions.
+- **Recharts & D3** - Scalable vector graphics for clinical data trends.
+- **Gemini AI SDK** - Optional AI analysis layer with secure public fallback.
+
+## 🌐 Public Viewing Mode
+This application is configured to run without API keys for public demonstrations. If a `GEMINI_API_KEY` is not provided, the system automatically uses its local clinical knowledge base to provide consistent results for genomic exploration.
+
+---
+
+## 📄 License
+This project is licensed under the Apache-2.0 License.
