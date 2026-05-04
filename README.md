@@ -26,11 +26,16 @@ The platform integrates multi-omic data sources with real-time visualization to 
 
 ## Screenshots
 
-Create a `screenshots` directory at the project root and add your application previews.
+The following interface captures demonstrate the core capabilities of the Onco-MoTV platform. Images are located in the `/screenshots` directory.
 
--   **Main Interface:** View of the interactive global mapping and epidemiological data.
--   **Molecular Explorer:** Interface for searching and analyzing genomic variants.
--   **Clinical Analytics:** Visualization of regional trends and cost models.
+![Global Dashboard Interface](./screenshots/global_dashboard.png)
+*Figure 1: Unified overview of global cancer density and regional epidemiological data.*
+
+![Molecular Explorer](./screenshots/molecular_search.png)
+*Figure 2: Real-time search and AI-enhanced intelligence for genomic entities.*
+
+![Clinical Trends](./screenshots/clinical_trends.png)
+*Figure 3: Detailed regional clinical analytics and treatment cost modeling.*
 
 ---
 
