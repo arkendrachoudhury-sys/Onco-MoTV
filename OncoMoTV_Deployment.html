@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Onco-MoTV | Molecular Tracking Laboratory</title>
+    <style>
+        /* ABSOLUTE CSS RESET */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        :root {
+            /* REFINED COLOR PALETTE - DEEP DIMENSIONAL TONES */
+            --bg-primary: #020617; /* Near Black Navy */
+            --bg-secondary: #0F172A; /* Deep Slate */
+            --bg-surface: rgba(30, 41, 59, 0.4);
+
+            --accent-cyan: #22D3EE;
+            --accent-cyan-glow: rgba(34, 211, 238, 0.2);
+            --accent-purple: #818CF8;
+
+            --text-primary: #F8FAFC;
+            --text-secondary: #CBD5E1;
+            --text-muted: #64748B;
+
+            --border-subtle: rgba(255, 255, 255, 0.05);
+            --border-active: rgba(255, 255, 255, 0.15);
+            --glass-blur: blur(16px);
+
+            --status-ongoing: #4ADE80;
+            --status-pending: #FB7185; /* Soft Red for Clinical Review */
+            --status-completed: #60A5FA;
+            --status-alert: #F87171;
+
+            --gradient-sidebar: linear-gradient(180deg, #0F172A 0%, #020617 100%);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LAYOUT STRUCTURE - Z-SCHEME */
+        #app-container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 72px 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* TOP HORIZON - ANALYTICAL HEADER */
+        header {
+            grid-column: 1 / -1;
+            background: rgba(15, 23, 42, 0.8);
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            z-index: 100;
+            backdrop-filter: var(--glass-blur);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            color: var(--accent-cyan);
+            text-transform: uppercase;
+            font-size: 14px;
+        }
+
+        .header-logo svg {
+            filter: drop-shadow(0 0 8px var(--accent-cyan-glow));
+        }
+
+        .kpi-container {
+            display: flex;
+            gap: 56px;
+        }
+
+        .kpi-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .kpi-value {
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .kpi-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* LEFT FLANK - NAVIGATION & FILTERS */
+        aside {
+            grid-column: 1;
+            grid-row: 2;
+            background: var(--gradient-sidebar);
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 32px;
+            gap: 40px;
+            overflow-y: auto;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .filter-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px 16px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.1);
+        }
+
+        .filter-select {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-subtle);
+            border-radius: 10px;
+            padding: 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            transition: var(--transition-smooth);
+        }
+
+        .filter-select:hover {
+            border-color: var(--border-active);
+        }
+
+        /* CENTRAL BODY - PRIMARY VISUALIZATION MATRIX */
+        main {
+            grid-column: 2;
+            grid-row: 2;
+            background: radial-gradient(circle at top right, #0F172A 0%, #020617 100%);
+            padding: 40px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .matrix-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-surface);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 20px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .matrix-header {
+            display: grid;
+            grid-template-columns: 180px 180px 140px 140px 1fr;
+            padding: 20px 32px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .matrix-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .matrix-row {
+            display: grid;
+            grid-template-columns: 180px 180px 140px 140px 1fr;
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--border-subtle);
+            font-size: 13px;
+            align-items: center;
+            transition: var(--transition-smooth);
+        }
+
+        .matrix-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(4px);
+        }
+
+        .gene-tag {
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.05em;
+        }
+
+        .mutation-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            opacity: 0.8;
+        }
+
+        .status-pill {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            width: fit-content;
+            border: 1px solid transparent;
+        }
+
+        .gantt-bar-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gantt-bar {
+            height: 100%;
+            position: absolute;
+            border-radius: 10px;
+            transition: width 1s ease-out;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        /* MODAL GATE */
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.9);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            width: 540px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-active);
+            border-radius: 24px;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: var(--transition-smooth);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: var(--bg-primary);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(34, 211, 238, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border-color: var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-active);
+        }
+
+        /* SCROLLBAR REFINEMENT */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-active);
+            border-radius: 10px;
+        }
+
+        /* UTILITIES */
+        .glass-glow {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: var(--accent-cyan);
+            filter: blur(120px);
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <header id="analytical-header">
+            <div class="header-logo">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+                <span>Onco-MoTV Lab</span>
+            </div>
+            <div class="kpi-container" id="kpi-display">
+                <!-- KPIs rendered via JS -->
+            </div>
+            <button class="btn btn-primary" onclick="openEntryModal()">+ Add Entity</button>
+        </header>
+
+        <aside id="left-flank">
+            <div class="filter-group">
+                <label class="filter-label">Target Repository</label>
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Gene or Variant ID..." oninput="handleSearch(event)">
+                </div>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Clinical Impact</label>
+                <select class="filter-select" onchange="handleFilterChange('variantType', this.value)">
+                    <option value="all">All Variants</option>
+                    <option value="pathogenic">Pathogenic</option>
+                    <option value="likely pathogenic">Likely Pathogenic</option>
+                    <option value="vus">VUS</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label class="filter-label">Pipeline Workflow</label>
+                <select class="filter-select" onchange="handleFilterChange('status', this.value)">
+                    <option value="all">All Statuses</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="pending">Pending Review</option>
+                    <option value="completed">Completed</option>
+                </select>
+            </div>
+        </aside>
+
+        <main id="central-matrix">
+            <div class="glass-glow" style="top: -100px; right: -100px;"></div>
+            <div class="matrix-container">
+                <div class="matrix-header">
+                    <span>Molecular Entity</span>
+                    <span>Variant Code</span>
+                    <span>Clinical Significance</span>
+                    <span>Workflow Status</span>
+                    <span>Study Benchmark</span>
+                </div>
+                <div class="matrix-body" id="matrix-body">
+                    <!-- Data rows rendered via JS -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL GATE -->
+    <div id="modal-gate" style="display: none;">
+        <div id="modal-overlay">
+            <div class="modal-content">
+                <h2 class="modal-title">Molecular Target Integration</h2>
+                <div class="form-group">
+                    <label class="filter-label">Gene Identifier (HGNC)</label>
+                    <input type="text" id="input-gene" class="search-input" placeholder="e.g. BRCA1">
+                </div>
+                <div class="form-group">
+                    <label class="filter-label">Genomic Mutation Code</label>
+                    <input type="text" id="input-mutation" class="search-input" placeholder="e.g. p.V1833F">
+                </div>
+                <div class="form-group">
+                    <label class="filter-label">Impact Significance</label>
+                    <select id="input-significance" class="filter-select">
+                        <option value="Pathogenic">Pathogenic</option>
+                        <option value="Likely Pathogenic">Likely Pathogenic</option>
+                        <option value="VUS">VUS</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" onclick="closeEntryModal()">Abort</button>
+                    <button class="btn btn-primary" onclick="saveEntry()">Commit Record</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ONCO-MOTV UNIFIED STATE ENGINE
+         * High-performance clinical array management.
+         */
+        const AppState = {
+            data: {
+                variants: [],
+                kpis: {
+                    totalTracking: 0,
+                    openReviews: 0,
+                    pipelineHealth: 'Synchronized'
+                }
+            },
+            filters: {
+                search: '',
+                variantType: 'all',
+                status: 'all'
+            }
+        };
+
+        const renderHeader = () => {
+            const kpiDisplay = document.getElementById('kpi-display');
+            const { kpis } = AppState.data;
+
+            kpiDisplay.innerHTML = `
+                <div class="kpi-item">
+                    <span class="kpi-value">${kpis.totalTracking}</span>
+                    <span class="kpi-label">Active Nodes</span>
+                </div>
+                <div class="kpi-item">
+                    <span class="kpi-value" style="color: var(--status-pending)">${kpis.openReviews}</span>
+                    <span class="kpi-label">Review Queue</span>
+                </div>
+                <div class="kpi-item">
+                    <span class="kpi-value" style="color: var(--accent-cyan)">${kpis.pipelineHealth}</span>
+                    <span class="kpi-label">Pipeline Status</span>
+                </div>
+            `;
+        };
+
+        const renderMatrix = async () => {
+            const matrixBody = document.getElementById('matrix-body');
+            const filteredData = getFilteredData();
+
+            matrixBody.innerHTML = '';
+
+            await processDataAsync(filteredData, (item) => {
+                const row = document.createElement('div');
+                row.className = 'matrix-row';
+
+                const statusColor = item.status === 'Ongoing' ? 'var(--status-ongoing)' :
+                                  item.status === 'Pending' ? 'var(--status-pending)' : 'var(--status-completed)';
+
+                const significanceColor = item.clinicalSignificance === 'Pathogenic' ? 'var(--status-alert)' :
+                                        item.clinicalSignificance === 'Likely Pathogenic' ? '#FBBF24' : 'var(--text-secondary)';
+
+                row.innerHTML = `
+                    <span class="gene-tag">${item.gene}</span>
+                    <span class="mutation-code">${item.mutation}</span>
+                    <span class="status-pill" style="background: ${significanceColor}10; color: ${significanceColor}; border-color: ${significanceColor}20">
+                        ${item.clinicalSignificance}
+                    </span>
+                    <span class="status-pill" style="background: ${statusColor}10; color: ${statusColor}; border-color: ${statusColor}20">
+                        ${item.status}
+                    </span>
+                    <div class="gantt-bar-container">
+                        <div class="gantt-bar" style="left: ${item.progressStart}%; width: ${item.progressWidth}%; background: ${statusColor}; color: ${statusColor}"></div>
+                    </div>
+                `;
+                matrixBody.appendChild(row);
+            });
+        };
+
+        const updateUI = () => {
+            renderHeader();
+            renderMatrix();
+        };
+
+        const processDataAsync = async (dataArray, processor) => {
+            const CHUNK_SIZE = 50;
+            let index = 0;
+
+            return new Promise((resolve) => {
+                const nextChunk = () => {
+                    const end = Math.min(index + CHUNK_SIZE, dataArray.length);
+                    for (; index < end; index++) {
+                        processor(dataArray[index]);
+                    }
+
+                    if (index < dataArray.length) {
+                        requestAnimationFrame(nextChunk);
+                    } else {
+                        resolve();
+                    }
+                };
+                nextChunk();
+            });
+        };
+
+        const getFilteredData = () => {
+            const { variants } = AppState.data;
+            const { search, variantType, status } = AppState.filters;
+
+            return variants.filter(v => {
+                const matchSearch = !search ||
+                    v.gene.toLowerCase().includes(search.toLowerCase()) ||
+                    v.mutation.toLowerCase().includes(search.toLowerCase());
+
+                const matchType = variantType === 'all' || v.clinicalSignificance.toLowerCase() === variantType.toLowerCase();
+                const matchStatus = status === 'all' || v.status.toLowerCase() === status.toLowerCase();
+
+                return matchSearch && matchType && matchStatus;
+            });
+        };
+
+        const handleSearch = (e) => {
+            AppState.filters.search = e.target.value;
+            updateUI();
+        };
+
+        const handleFilterChange = (key, value) => {
+            AppState.filters[key] = value;
+            updateUI();
+        };
+
+        const openEntryModal = () => {
+            document.getElementById('modal-gate').style.display = 'block';
+        };
+
+        const closeEntryModal = () => {
+            document.getElementById('modal-gate').style.display = 'none';
+        };
+
+        const saveEntry = () => {
+            const gene = document.getElementById('input-gene').value;
+            const mutation = document.getElementById('input-mutation').value;
+            const significance = document.getElementById('input-significance').value;
+
+            if (!gene || !mutation) {
+                return;
+            }
+
+            const newVariant = {
+                gene: gene.toUpperCase(),
+                mutation: mutation,
+                clinicalSignificance: significance,
+                status: 'Pending',
+                progressStart: 0,
+                progressWidth: 15,
+                source: 'Manual Internal Entry'
+            };
+
+            AppState.data.variants.unshift(newVariant);
+            AppState.data.kpis.totalTracking++;
+            AppState.data.kpis.openReviews++;
+
+            updateUI();
+            closeEntryModal();
+
+            document.getElementById('input-gene').value = '';
+            document.getElementById('input-mutation').value = '';
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const mockVariants = [
+                { gene: 'TP53', mutation: 'p.R248Q', clinicalSignificance: 'Pathogenic', status: 'Ongoing', progressStart: 10, progressWidth: 55 },
+                { gene: 'PIK3CA', mutation: 'p.E545K', clinicalSignificance: 'Pathogenic', status: 'Completed', progressStart: 0, progressWidth: 100 },
+                { gene: 'EGFR', mutation: 'p.L858R', clinicalSignificance: 'Pathogenic', status: 'Ongoing', progressStart: 35, progressWidth: 50 },
+                { gene: 'AKT1', mutation: 'p.E17K', clinicalSignificance: 'Likely Pathogenic', status: 'Pending', progressStart: 5, progressWidth: 15 },
+                { gene: 'BRCA1', mutation: 'c.68_69delAG', clinicalSignificance: 'Pathogenic', status: 'Ongoing', progressStart: 45, progressWidth: 35 },
+                { gene: 'BRCA2', mutation: 'p.S1982fs', clinicalSignificance: 'Pathogenic', status: 'Completed', progressStart: 0, progressWidth: 100 },
+                { gene: 'NOTCH1', mutation: 'p.L1601P', clinicalSignificance: 'Pathogenic', status: 'Ongoing', progressStart: 20, progressWidth: 60 },
+                { gene: 'HRAS', mutation: 'p.G12V', clinicalSignificance: 'Pathogenic', status: 'Pending', progressStart: 15, progressWidth: 20 },
+                { gene: 'TERT', mutation: 'C228T', clinicalSignificance: 'Pathogenic', status: 'Ongoing', progressStart: 40, progressWidth: 45 },
+                { gene: 'KRAS', mutation: 'p.G12D', clinicalSignificance: 'Pathogenic', status: 'Completed', progressStart: 0, progressWidth: 100 }
+            ];
+
+            AppState.data.variants = mockVariants;
+            AppState.data.kpis = {
+                totalTracking: mockVariants.length,
+                openReviews: mockVariants.filter(v => v.status === 'Pending').length,
+                pipelineHealth: 'Synchronized'
+            };
+
+            updateUI();
+        });
+    </script>
+</body>
+</html>
