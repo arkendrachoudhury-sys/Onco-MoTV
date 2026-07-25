@@ -83,6 +83,7 @@ export default function App() {
   const [aiSearching, setAiSearching] = useState(false);
   const [aiGeneResult, setAiGeneResult] = useState<any>(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(new Date());
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -100,19 +101,34 @@ export default function App() {
 
   const filteredVariants = useMemo(() => {
     const list = [...VARIANT_DATA];
-    if (aiGeneResult && searchQuery && aiGeneResult.gene.toLowerCase() === searchQuery.toLowerCase()) {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (aiGeneResult && normalizedQuery && aiGeneResult.gene.toLowerCase() === normalizedQuery) {
       list.unshift(aiGeneResult);
     }
+    if (!normalizedQuery) return list;
     return list.filter(v => 
-      v.gene.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.mutation.toLowerCase().includes(searchQuery.toLowerCase())
+      v.gene.toLowerCase().includes(normalizedQuery) ||
+      v.mutation.toLowerCase().includes(normalizedQuery)
     );
   }, [searchQuery, aiGeneResult]);
 
   const handleGeneSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchQuery || searchQuery.length < 2) return;
+    if (!searchQuery || searchQuery.trim().length < 2) {
+      setValidationError("Search query must be at least 2 characters long.");
+      return;
+    }
+    if (searchQuery.length > 50) {
+      setValidationError("Search query cannot exceed 50 characters.");
+      return;
+    }
+    const safeRegex = /^[a-zA-Z0-9\s\-\.\_]+$/;
+    if (!safeRegex.test(searchQuery)) {
+      setValidationError("Search query contains invalid characters. Use alphanumeric, spaces, hyphens, dots, or underscores.");
+      return;
+    }
 
+    setValidationError(null);
     setAiSearching(true);
     
     // Check if API key is present
@@ -239,8 +255,10 @@ export default function App() {
         </div>
 
         <button 
+          type="button"
+          aria-label={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          className="hidden lg:flex absolute -right-4 top-20 bg-[#00f2ff] text-black rounded-full p-1 shadow-[0_0_15px_rgba(0,242,255,0.6)] z-50 transition-transform hover:scale-110 active:scale-95"
+          className="hidden lg:flex absolute -right-4 top-20 bg-[#00f2ff] text-black rounded-full p-1 shadow-[0_0_15px_rgba(0,242,255,0.6)] z-50 transition-transform hover:scale-110 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
         >
           {isSidebarOpen ? <X size={14} /> : <Menu size={14} />}
         </button>
@@ -252,33 +270,50 @@ export default function App() {
         <header className="h-14 border-b border-[var(--border)] px-4 lg:px-8 flex items-center justify-between shrink-0" style={{ backgroundColor: 'var(--sidebar)' }}>
           <div className="flex items-center gap-4 lg:gap-6 w-full lg:w-auto">
             <button 
+              type="button"
+              aria-label="Open mobile menu"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="lg:hidden p-2 hover:bg-white/5 rounded-lg border border-[var(--border)]"
+              className="lg:hidden p-2 hover:bg-white/5 rounded-lg border border-[var(--border)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               <Menu size={18} />
             </button>
             <h1 className="text-xs lg:text-sm font-bold tracking-widest uppercase glow-text whitespace-nowrap hidden sm:block">Onco-MoTV Lab</h1>
             
-            <form onSubmit={handleGeneSearch} className="relative group flex-1 sm:flex-initial">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 group-focus-within:text-cyan-400 group-focus-within:opacity-100 transition-all" size={12} />
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Genomic Entities..."
-                className="bg-black/10 dark:bg-white/5 border border-[var(--border)] rounded-full py-1.5 pl-9 lg:pl-10 pr-4 text-[9px] lg:text-[10px] font-mono w-full sm:w-48 lg:focus:w-80 focus:border-cyan-500/50 outline-none transition-all"
-              />
-              {aiSearching && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <div className="w-3 h-3 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+            <div className="flex flex-col relative flex-1 sm:flex-initial">
+              <form onSubmit={handleGeneSearch} className="relative group w-full">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 group-focus-within:text-cyan-400 group-focus-within:opacity-100 transition-all" size={12} />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (validationError) setValidationError(null);
+                  }}
+                  placeholder="Genomic Entities..."
+                  className={`bg-black/10 dark:bg-white/5 border rounded-full py-1.5 pl-9 lg:pl-10 pr-4 text-[9px] lg:text-[10px] font-mono w-full sm:w-48 lg:focus:w-80 focus:border-cyan-500/50 outline-none transition-all ${validationError ? 'border-red-500 ring-1 ring-red-500' : 'border-[var(--border)]'}`}
+                />
+                {aiSearching && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <div className="w-3 h-3 border-2 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin" />
+                  </div>
+                )}
+              </form>
+              {validationError && (
+                <div
+                  aria-live="assertive"
+                  className="absolute left-0 top-full mt-1 bg-red-950/90 border border-red-500 text-red-400 px-3 py-1 rounded text-[8px] font-mono shadow-lg z-50 whitespace-nowrap"
+                >
+                  {validationError}
                 </div>
               )}
-            </form>
+            </div>
           </div>
           <div className="flex items-center gap-4 lg:gap-8 text-[9px] lg:text-[10px] font-mono uppercase tracking-widest ml-4">
             <button 
+              type="button"
+              aria-label={theme === 'dark' ? "Switch to light theme" : "Switch to dark theme"}
               onClick={toggleTheme}
-              className="p-1.5 lg:p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-[var(--border)] flex items-center justify-center group"
+              className="p-1.5 lg:p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-[var(--border)] flex items-center justify-center group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               <AnimatePresence mode="wait">
                 {theme === 'dark' ? (
@@ -403,10 +438,12 @@ export default function App() {
                        <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-7 gap-2 max-h-[80px] overflow-y-auto pr-2 custom-scrollbar">
                           {COUNTRY_SPECIFIC_DATA.map((c) => (
                             <motion.button
+                              type="button"
+                              aria-label={`Select ${c.country} diagnostic node`}
                               key={c.country}
                               whileHover={{ scale: 1.05 }}
                               onClick={() => setSelectedCountry(c.country)}
-                              className={`px-2 py-1 rounded border transition-all text-[8px] font-mono ${
+                              className={`px-2 py-1 rounded border transition-all text-[8px] font-mono focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                                 selectedCountry === c.country ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400' : 'border-[var(--border)] opacity-60 hover:opacity-100'
                               }`}
                             >
@@ -471,10 +508,12 @@ export default function App() {
                       <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                          {COUNTRY_SPECIFIC_DATA.map((c) => (
                            <motion.button 
+                            type="button"
+                            aria-label={`Show detailed regional analytics for ${c.country}`}
                             key={c.country}
                             whileHover={{ x: 4, backgroundColor: 'var(--accent-soft)' }}
                             onClick={() => setSelectedCountry(c.country)}
-                            className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between ${selectedCountry === c.country ? 'border-purple-500 bg-purple-500/10' : 'border-[var(--border)] opacity-60 hover:opacity-100'}`}
+                            className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${selectedCountry === c.country ? 'border-purple-500 bg-purple-500/10' : 'border-[var(--border)] opacity-60 hover:opacity-100'}`}
                            >
                              <div>
                                <p className="text-xs font-bold">{c.country}</p>
@@ -712,8 +751,10 @@ export default function App() {
                       </div>
                     </div>
                     <button 
+                      type="button"
+                      aria-label="Close AI Core resolved gene node"
                       onClick={() => setAiGeneResult(null)}
-                      className="absolute top-4 right-4 text-[10px] font-mono opacity-40 hover:opacity-100 transition-opacity"
+                      className="absolute top-4 right-4 text-[10px] font-mono opacity-40 hover:opacity-100 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded"
                     >[ CLOSE_NODE ]</button>
                   </motion.div>
                 )}
@@ -730,9 +771,14 @@ export default function App() {
                         <span>Source Origin</span>
                       </div>
                       <div className="max-h-[600px] overflow-y-auto overflow-x-hidden">
-                        {filteredVariants.map((v, i) => (
+                        {filteredVariants.length === 0 ? (
+                          <div className="p-12 text-center text-sm opacity-60">
+                            <p className="font-bold mb-2">No variants matching search filters found.</p>
+                            <p className="text-xs">Try looking up valid genomic signals such as <span className="text-cyan-400 font-mono">TP53</span>, <span className="text-cyan-400 font-mono">EGFR</span>, or <span className="text-cyan-400 font-mono">AKT1</span>.</p>
+                          </div>
+                        ) : filteredVariants.map((v, i) => (
                           <motion.div 
-                            key={i}
+                            key={`${v.gene}-${v.mutation}-${v.source}-${i}`}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             whileHover={{ 
@@ -813,8 +859,10 @@ function SidebarItem({ icon, label, active, collapsed, onClick }: {
 }) {
   return (
     <button 
+      type="button"
+      aria-label={label}
       onClick={onClick}
-      className={`w-full flex items-center gap-4 p-3 rounded transition-all duration-200 group relative overflow-hidden ${
+      className={`w-full flex items-center gap-4 p-3 rounded transition-all duration-200 group relative overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
         active 
           ? 'bg-gradient-to-r from-cyan-600/20 to-purple-600/20 text-white border-l-2 border-cyan-400' 
           : 'hover:bg-white/5 text-white/40'
